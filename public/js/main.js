@@ -1,5 +1,7 @@
 const chatForm = document.getElementById("chat-form")
 const chatMessages = document.querySelector(".chat-messages")
+const roomName = document.getElementById("room-name")
+const usersList = document.getElementById("users")
 
 // Get username and room from URL
 const { username, room } = Qs.parse(location.search, {
@@ -9,20 +11,24 @@ const { username, room } = Qs.parse(location.search, {
 const socket = io()
 // Join chatroom
 socket.emit("joinRoom", { username, room })
-// Message from server
 
-// Leave Chat
-
-document.getElementById("leave-btn").addEventListener("click", () => {
-  window.location = "../index.html"
-  // const leaveRoom = confirm("Are you sure you want to leave the chatroom?")
-  // if (leaveRoom) {
-  //   window.location = "../index.html"
-  // }
+// Get room and users
+socket.on("roomUsers", ({ room, users }) => {
+  console.log(room)
+  outputRoomName(room)
+  outputUsers(users)
 })
 
+// Leave Chat
+document.getElementById("leave-btn").addEventListener("click", () => {
+  const leaveRoom = confirm("Are you sure you want to leave the chatroom?")
+  if (leaveRoom) {
+    window.location = "../index.html"
+  }
+})
+
+// Message from server
 socket.on("message", (message) => {
-  console.log(message)
   outputMessage(message)
 
   // Scroll down
@@ -45,7 +51,6 @@ chatForm.addEventListener("submit", (e) => {
 
 // Output message to DOM
 function outputMessage(message) {
-  console.log(message)
   const div = document.createElement("div")
   div.classList.add("message")
   div.innerHTML = ` <p class="meta">${message.username} <span>${message.time}</span></p>
@@ -53,4 +58,16 @@ function outputMessage(message) {
 
   const chatMessages = document.querySelector(".chat-messages")
   chatMessages.appendChild(div)
+}
+
+// Add room name to DOM
+function outputRoomName(room) {
+  roomName.innerText = room
+}
+
+// Add room name to DOM
+function outputUsers(users) {
+  usersList.innerHTML = `${users
+    .map((user) => `<li>${user.username}</li>`)
+    .join("")}`
 }
